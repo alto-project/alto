@@ -7,10 +7,10 @@ import java.util.Map.Entry;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.spi.RegionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.service.Service;
-import org.hibernate.service.ServiceRegistry;
-import org.hibernate.service.ServiceRegistryBuilder;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBuilder;
@@ -37,13 +37,17 @@ public class Hibernate4SessionFactoryBean extends LocalSessionFactoryBean {
 	@Override
 	protected SessionFactory buildSessionFactory(LocalSessionFactoryBuilder sfb) {
 		
-		ServiceRegistryBuilder builder = new ServiceRegistryBuilder();
-			
+//		ServiceRegistryBuilder builder = new ServiceRegistryBuilder();
+
 		if (entityNotFoundDelegate != null) {
 		
 			this.getConfiguration().setEntityNotFoundDelegate(entityNotFoundDelegate);
 		}
-		
+
+		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().
+				applySettings(this.getConfiguration().getProperties());
+		SessionFactory sessionFactory = this.getConfiguration().buildSessionFactory(builder.build());
+
 		try {
 			if (serviceMap != null) {
 				for (Entry<String, Service> entry : serviceMap.entrySet()) {
@@ -56,11 +60,9 @@ public class Hibernate4SessionFactoryBean extends LocalSessionFactoryBean {
 		}
 		
 		builder.applySettings(sfb.getProperties());
-		ServiceRegistry reg = builder.buildServiceRegistry();
-		return sfb.buildSessionFactory(reg);
-		
-		
-		
+//		ServiceRegistry reg = builder.buildServiceRegistry();
+//		return sfb.buildSessionFactory(reg);
+		return sessionFactory;
 	}
 
 	public void addService(Class serviceClass, Service implementation) {
